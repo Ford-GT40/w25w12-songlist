@@ -1,27 +1,27 @@
 import { Routes, Route } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { getSongList } from './api/songApi'
+import { useQuery } from '@tanstack/react-query'
 
 import SongList from './pages/SongList.jsx'
 import SongDetail from './pages/SongDetail.jsx'
+import { getSongList } from './api/songApi'
 
 function App() {
-  const [songs, setSongs] = useState([])
+  const { data: songs, isLoading, isError, error } = useQuery({
+    queryKey: ['songs'], // songs로 caching
+    queryFn: getSongList // songApi의 getSongList 사용
+    // 베리에이션
+    // 인자 필요한 경우: queryFn: () => getSongDetail(id),
+    // bind 함수: queryFn: getSongDetail.bind(null, id),
+    // id만 있을 때: enabled: !!id,
+  })
 
-  // useEffect: state 변경될 때 수행하는 작업 정의
-  useEffect(() => {
-    const fetchSongs = async () => {
-      try {
-        const data = await getSongList()
-        // await 종료까지 대기
-        setSongs(data)
-      } catch (err) {
-        console.error("Failed to fetch songs:", err)
-      }
-    }
+  if (isLoading) {
+    return <p className="text-center mt-10">Loading...</p>
+  }
 
-    fetchSongs()
-  }, [])
+  if (isError) {
+    return <p className="text-center mt-10">오류 발생: {error.message}</p>
+  }
 
   return (
     <Routes>
